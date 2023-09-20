@@ -1,0 +1,285 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hong Kong real-time flight website</title>
+<link rel='stylesheet' href='styles.css'>
+</head>
+<body>
+<h1>Hong Kong International Airport flight information</h1>
+<p>Date: <span id="datee"></span></p>
+<script>
+   var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+
+    var currdate = today = yyyy + '-' + mm + '-' + dd;
+    document.getElementById("datee").innerHTML= currdate;
+</script>
+<p class="togglep">Departure 
+    <label class = "switch">
+        <input type ="checkbox" id ="checki" onclick="changetext()">
+        <span class = "rslide"></span>
+    </label>  Arrival
+</p>
+<p id="departin">Departure information</p>
+<p id="arrin">Arrival information</p>
+<button onclick="loadearly()" id="earbut">Load Early Flights</button>
+<table id="tablee">
+
+</table>
+<button onclick="loadlater()" id="latebut">Load More Flights</button>
+<script>
+    var iata;
+    var dataa;
+    var leave;
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+
+    var currdate = today = yyyy + '-' + mm + '-' + dd;
+    async function getjson(){
+        let response = await fetch("iata.json");
+        if (response.status == 200){
+            iata = await response.json();
+        }
+    }
+    async function retri(){
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        let currdate = today = yyyy + '-' + mm + '-' + dd;
+        let response = await fetch("flight.php?date="+currdate+"&lang=en&cargo=false&arrival=true");
+        if (response.status == 200){dataa = await response.json();}
+    }
+
+    async function depa(){
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        let currdate = today = yyyy + '-' + mm + '-' + dd;
+        let response = await fetch("flight.php?date="+currdate+"&lang=en&cargo=false&arrival=false")
+        if (response.status == 200){leave = await response.json();}
+    }
+    function loadearly(){
+        let tab = document.getElementById("tablee");
+        for (var i = 0, row; row = tab.rows[i]; i++) {
+            console.log(i);
+            if (tab.rows[i].style.display !== "none"){
+                break;
+            }
+            tab.rows[i].style.display = "table-row";
+        }
+        let butto = document.getElementById("earbut");
+        butto.style.display = "none";
+    }
+
+    function loadlater(){
+        let tab = document.getElementById("tablee");
+        var chec = false;
+        for (var j = 0, row; row = tab.rows[j]; j++){
+            if (tab.rows[j].style.display !== "none"){
+                chec = true;
+            }
+            if (chec){
+                tab.rows[j].style.display = "table-row";
+            }
+        }
+        let butto = document.getElementById("latebut");
+        butto.style.display = "none";
+    }
+    function findiata(jsonn, code){
+        for (x in jsonn){
+            if (jsonn[x].iata_code == code){
+                return [jsonn[x].name, jsonn[x].municipality];
+            }
+        }
+    }
+    async function depart(){
+        await getjson();
+        await depa();
+        let tab = document.getElementById("tablee");
+        var now = new Date();
+        var te = now.toTimeString().split(' ')[0].split(':');
+        var timee = te[0] + ":" + te[1];
+        var count = 0;
+        console.log(timee);
+        console.log(leave);
+        for (let i in leave){
+            console.log(i);
+            for (let j in leave[i].list){
+                var row = tab.insertRow();
+                var cell1 = row.insertCell();
+                cell1.innerHTML = "flight no: ";
+                for (k in leave[i].list[j].flight){
+                    cell1.innerHTML += "<span>" + leave[i].list[j].flight[k].no + "</span>" + " ";
+                }
+                cell1.innerHTML += "<br>";
+                cell1.innerHTML += "<br>";
+                cell1.innerHTML += "Destination (Airport):";
+                cell1.innerHTML += "<br>";
+                for (x in leave[i].list[j].destination){
+                    var temp = leave[i].list[j].destination[x];
+                    var ans;
+                    var city;
+                    [ans, city]= findiata(iata, temp);
+                    cell1.innerHTML += city + " (" + ans + ")"+ "<br>";
+                }
+                /*cell1.innerHTML += "<br>";*/
+                cell1.innerHTML += "<br>";
+                var temp = "Terminal: " + leave[i].list[j].terminal + " ";
+                cell1.innerHTML += temp;
+                cell1.innerHTML += "Aisle: " + leave[i].list[j].aisle + " ";
+                cell1.innerHTML += "Gate: " + leave[i].list[j].gate;
+                var cell2 = row.insertCell();
+                cell2.innerHTML += "Schedule time: ";
+                if (leave[i].date != currdate){
+                    cell2.innerHTML += leave[i].date + " ";
+                }
+                cell2.innerHTML += leave[i].list[j].time;
+                cell2.innerHTML += "<br>";
+                cell2.innerHTML += "<br>";
+                cell2.innerHTML += "Status: " + leave[i].list[j].status;
+                if (leave[i].date != currdate){
+                    row.style.display = "none";
+                }
+                else{
+                    if (leave[i].list[j].time < timee){
+                        row.style.display = "none";
+                    }
+                    else{
+                        if (count >= 10){
+                            row.style.display = "none";
+                        }
+                        count += 1;
+                    }
+                }
+            }
+            console.log("finish");
+        }
+        /*var row = tab.insertRow();
+        var cell1 = row.insertCell();
+        var cell2 = row.insertCell();
+        cell1.innerHTML = dataa[0].date
+        cell2.innerHTML = dataa[0].arrival;
+        var row = tab.insertRow();
+        var cell1 = row.insertCell();
+        var cell2 = row.insertCell();
+        cell1.innerHTML = dataa[0].date;
+        cell2.innerHTML = dataa[0].arrival;*/
+    }
+    async function getdata() {
+        await getjson();
+        await retri();
+        /*var cdate = new Date().toJSON().slice(0, 10);
+        var currdate = cdate.toString("yyyy-MM-dd");
+        let response = await fetch("flight.php?date="+currdate+"&lang=en&cargo=false&arrival=true")
+        let dataa = await response.json();*/
+        let tab = document.getElementById("tablee");
+        var now = new Date();
+        var te = now.toTimeString().split(' ')[0].split(':');
+        var timee = te[0] + ":" + te[1];
+        var count = 0;
+        console.log(timee);
+        for (let i in dataa){
+            for (let j in dataa[i].list){
+                var row = tab.insertRow();
+                var cell1 = row.insertCell();
+                cell1.innerHTML = "flight: ";
+                for (k in dataa[i].list[j].flight){
+                    /*cell1.innerHTML += dataa[i].list[j].flight[k].no += " ";*/
+                    cell1.innerHTML += "<span>" + dataa[i].list[j].flight[k].no + "</span>" + " ";
+                }
+                cell1.innerHTML += "<br>";
+                cell1.innerHTML += "<br>";
+                cell1.innerHTML += "Origin (Airport):";
+                cell1.innerHTML += "<br>";
+                for (x in dataa[i].list[j].origin){
+                    var temp = dataa[i].list[j].origin[x];
+                    var ans;
+                    var city;
+                    [ans, city]= findiata(iata, temp);
+                    cell1.innerHTML += city + " (" + ans + ")"+ "<br>";
+                }
+                
+                cell1.innerHTML += "<br>";
+                var temp = "Parking stand: " + dataa[i].list[j].stand + " ";
+                cell1.innerHTML += temp;
+                cell1.innerHTML += "hall: " + dataa[i].list[j].hall + " ";
+                cell1.innerHTML += "Belt: " + dataa[i].list[j].baggage;
+                var cell2 = row.insertCell();
+                cell2.innerHTML += "Schedule time: ";
+                if (dataa[i].date != currdate){
+                    cell2.innerHTML += dataa[i].date + " ";
+                }
+                cell2.innerHTML += dataa[i].list[j].time;
+                cell2.innerHTML += "<br>";
+                cell2.innerHTML += "<br>";
+                cell2.innerHTML += "Status: " + dataa[i].list[j].status;
+                if (dataa[i].date != currdate){
+                    row.style.display = "none";
+                }
+                else{
+                    if (dataa[i].list[j].time < timee){
+                        row.style.display = "none";
+                    }
+                    else{
+                        if (count >= 10){
+                            row.style.display = "none";
+                        }
+                        count += 1;
+                    }
+                }
+            }
+        }
+        /*var row = tab.insertRow();
+        var cell1 = row.insertCell();
+        var cell2 = row.insertCell();
+        cell1.innerHTML = dataa[0].date
+        cell2.innerHTML = dataa[0].arrival;
+        var row = tab.insertRow();
+        var cell1 = row.insertCell();
+        var cell2 = row.insertCell();
+        cell1.innerHTML = dataa[0].date;
+        cell2.innerHTML = dataa[0].arrival;*/
+    }
+    function changetext(){
+        let tab = document.getElementById("tablee");
+        if (document.getElementById("checki").checked === true){
+            document.getElementById("departin").style.display = "none";
+            document.getElementById("arrin").style.display = "block";
+            /*for (let x of tab.rows){
+                tab.deleteRow(-1);
+            }*/
+            tab.innerHTML = "";
+            let butto = document.getElementById("earbut");
+            butto.style.display = "block";
+            butto = document.getElementById("latebut");
+            butto.style.display = "block";
+            getdata();
+            console.log("yes")
+        }
+        else{
+            document.getElementById("arrin").style.display = "none";
+            document.getElementById("departin").style.display = "block";
+            tab.innerHTML = "";
+            let butto = document.getElementById("earbut");
+            butto.style.display = "block";
+            butto = document.getElementById("latebut");
+            butto.style.display = "block";
+            depart();
+            console.log("yes")
+        }
+    }
+    changetext();
+
+
+</script>
+
+</body>
+</html>

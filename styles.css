@@ -1,0 +1,93 @@
+
+h1{
+    text-align:center;
+    background-color: palegreen;
+    height:70px;
+}
+
+.switch {
+    display: inline-block;
+    position: relative;
+    width: 40px;
+    height: 25px;
+}
+
+.switch input { 
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}
+
+.rslide {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: blue;
+    transition: 0.3s;
+}
+
+input:checked + .rslide:before {
+    transform: translateX(15px);
+}
+table, tr{
+    border: 1px solid;
+}
+.rslide:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2.5px;
+    background-color: yellow;
+    transition: 0.3s;
+}
+.togglep{
+    height:45px;
+    background-color: bisque;
+    text-align:center;
+    font-size: large;
+    padding-top: 20px;
+}
+#arrin{
+    display:none;
+}
+table{
+    margin-left:10%;
+    border-collapse: collapse;
+    width:80%;
+    border-style: solid;
+    border-color:blueviolet;
+    background-color: #D6EEEE;
+    border-width:1px;
+}
+tr{
+    border-color:blue;
+    border-width:2px;
+}
+
+#earbut{
+    position:relative;
+    left:43%;
+    width:15%;
+    padding: 2% 1%;
+    background-color: #4CAF50;
+    color: white;
+    border:none;
+}
+
+#latebut{
+    position:relative;
+    left:43%;
+    width:15%;
+    padding: 2% 1%;
+    background-color: blue;
+    color: white;
+    border:none;
+}
+span{
+    white-space: nowrap;
+}
